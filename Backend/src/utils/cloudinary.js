@@ -18,7 +18,7 @@ const uploadOnCloudinary = async (localFilePath) => {
       media_metadata: true,
     });
 
-    console.log(`File Path : ${uploadResult.url}`);
+    // console.log(`File Path : ${uploadResult.url}`);
 
     // Check if the file exists before deleting
     if (fs.existsSync(localFilePath)) {
