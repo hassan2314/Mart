@@ -57,55 +57,57 @@ const Navbar = () => {
     const input = document.getElementById(id);
     input.type = input.type === "password" ? "text" : "password";
   };
-  
+
   const handleLoginChange = (e) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
   };
-  
+
   const handleSignupChange = (e) => {
     setSignupData({ ...signupData, [e.target.name]: e.target.value });
   };
-  
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8000/api/v1/users/login", loginData, { withCredentials: true });
-  
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/users/login`,
+        loginData,
+        { withCredentials: true }
+      );
+
       const { accessToken, user } = res.data.data;
-  
+
       // Save the userId to localStorage (or use cookies for sensitive info)
       localStorage.setItem("userId", user._id); // Store minimal user data (userId only)
-  
+
       // Optionally store the accessToken in sessionStorage or cookies (safer than localStorage)
-      sessionStorage.setItem("accessToken", accessToken); 
-  
+      sessionStorage.setItem("accessToken", accessToken);
+
       setCurrentUser(user); // Update the UI state with minimal user data
       setIsModalOpen(false);
       setLoginData({ username: "", password: "" });
-  
-     
     } catch (err) {
       console.error("Login Error:", err);
       alert("Login failed! Please check credentials.");
     }
   };
-  
+
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     for (let key in signupData) {
       formData.append(key, signupData[key]);
     }
-  
+
     try {
       await axios.post(
-        "http://localhost:8000/api/v1/users/register",
+        `${import.meta.env.VITE_API_URL}/users/register`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-  
+
       alert("Registration Successful! Please Login.");
       setFormType("login");
       setSignupData({
@@ -124,34 +126,32 @@ const Navbar = () => {
       alert("Registration failed! Try again.");
     }
   };
-  
+
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:8000/api/v1/users/logout", null, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/users/logout`, null, {
         withCredentials: true,
       });
-  
+
       // Clear session data
       localStorage.removeItem("userId");
-      sessionStorage.removeItem("accessToken");  // Clear access token from sessionStorage
+      sessionStorage.removeItem("accessToken"); // Clear access token from sessionStorage
       setCurrentUser(null);
       setIsDropdownOpen(false);
-  
+
       // Clear cookies if they were used
-      document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  
+      document.cookie =
+        "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
       navigate("/"); // Navigate to home or login page after logout
-     
     } catch (err) {
       console.error("Logout Error:", err);
       alert("Error logging out. Try again.");
     }
   };
-  
-  
-  
-  
+
   return (
     <>
       {/* Navbar */}

@@ -1,16 +1,32 @@
-import React from 'react';
+import axios from 'axios';
+import React,  { useEffect, useState } from 'react';
 
 const Product = () => {
-    const slides = [
-        { image: "/bakistry.png", title: "Whole Chicken, Designer Cuts" },
-        { image: "/breadedselection.png", title: "Breaded Selection" },
-        { image: "/deline.png", title: "Kabab Temptations" },
-        { image: "/kababtemptations.png", title: "Deline" },
-        { image: "/premiumchicken.png", title: "Topping & Fillingz" },
-        { image: "/samosa.png", title: "Signature Samosas and Spring Roll" },
-        { image: "/stok.png", title: "Bakistry" },
-        { image: "/tnf.png", title: "Stok" },
-      ];
+    //  const slides =
+    // [
+    //     { image: "/bakistry.png", title: "Whole Chicken, Designer Cuts" },
+    //     { image: "/breadedselection.png", title: "Breaded Selection" },
+    //     { image: "/deline.png", title: "Kabab Temptations" },
+    //     { image: "/kababtemptations.png", title: "Deline" },
+    //     { image: "/premiumchicken.png", title: "Topping & Fillingz" },
+    //     { image: "/samosa.png", title: "Signature Samosas and Spring Roll" },
+    //     { image: "/stok.png", title: "Bakistry" },
+    //     { image: "/tnf.png", title: "Stok" },
+    //   ];
+    const [slides, setSlides] = useState([]);
+
+    useEffect(() => {
+      const fetchProducts = async () => {
+        try {
+          const res = await axios.get(`${import.meta.env.VITE_API_URL}/products/`);
+          setSlides(res.data.data); // Assuming API response structure is { success, message, data }
+        } catch (error) {
+          console.error("Error fetching products:", error);
+        }
+      };
+  
+      fetchProducts();
+    }, []);
   return (
   
     <div className="py-16 bg-gray-100">

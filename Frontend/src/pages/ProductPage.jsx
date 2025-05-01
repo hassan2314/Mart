@@ -1,43 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import ProductList from "../components/Products/ProductList";
 import Cart from "../components/Products/Cart";
 
 const ProductPage = () => {
   const [cart, setCart] = useState([]);
+  const [products, setProducts] = useState([]);
 
-  // Static data for now
-  const products = [
-    { id: 1, name: "Whole Chicken", price: 12.99, image: "/bakistry.png" },
-    {
-      id: 2,
-      name: "Breaded Selection",
-      price: 9.99,
-      image: "/breadedselection.png",
-    },
-    { id: 3, name: "Kabab Temptations", price: 14.99, image: "/deline.png" },
-    {
-      id: 4,
-      name: "Premium Chicken",
-      price: 14.99,
-      image: "/premiumchicken.png",
-    },
-    { id: 5, name: "Samosa", price: 14.99, image: "/samosa.png" },
-    { id: 6, name: "Stok", price: 14.99, image: "/stok.png" },
-    { id: 7, name: "TnF", price: 14.99, image: "/tnf.png" },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/products/`);
+        setProducts(res.data.data); // Adjust if API format differs
+        console.log(res.data.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const addToCart = (product) => {
-    const existing = cart.find((item) => item.id === product.id);
+    const existing = cart.find((item) => item._id === product._id);
     if (existing) {
       setCart(
         cart.map((item) =>
-          item.id === product.id
-            ? { ...item, qty: item.qty + product.qty }
+          item._id === product._id
+            ? { ...item, qty: item.qty + (product.qty || 1) }
             : item
         )
       );
     } else {
-      setCart([...cart, { ...product }]);
+      setCart([...cart, { ...product, qty: product.qty || 1 }]);
     }
   };
 
@@ -54,27 +49,17 @@ const ProductPage = () => {
   };
 
   return (
-    <>
     <div className="w-full overflow-x-hidden">
-  {/* Page content here */}
-
-
       <div className="bg-gray-50 min-h-screen">
         <h1 className="md:text-3xl text-2xl font-bold my-6 text-red-600 text-center">
           Our Products
         </h1>
-        {/* <div className="max-w-6xl mx-auto py-10 flex space-x-6">
-          {/* Passing static data to ProductList */}
-        {/* <ProductList products={products} onAddToCart={addToCart} /> */}
-        {/* <Cart cart={cart} onRemove={removeFromCart} onBuyNow={buyNow} /> */}
-        {/* </div>  */}
         <div className="flex flex-col lg:flex-row gap-6 px-4">
           <ProductList products={products} onAddToCart={addToCart} />
           <Cart cart={cart} onRemove={removeFromCart} onBuyNow={buyNow} />
         </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 };
 
