@@ -90,32 +90,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
       throw new ApiError(500, "Server Error");
     }
 
-    // const otp = crypto.randomBytes(3).toString("hex"); // 6-digit OTP
-    // const otpExpires = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
-
-    // user.emailVerificationToken = otp;
-    // user.emailVerificationExpires = otpExpires;
-
-    // await user.save({ validateBeforeSave: false });
-
-    // const transporter = nodemailer.createTransport({
-    //   service: "gmail", // Or any other email provider
-    //   auth: {
-    //     user: process.env.EMAIL_USER, // Your email address
-    //     pass: process.env.EMAIL_PASS, // Your email password
-    //   },
-    // });
-
-    // const mailOptions = {
-    //   from: process.env.EMAIL_USER,
-    //   to: user.email,
-    //   subject: "Email Verification",
-    //   text: `Your OTP code for email verification is ${otp}. It will expire in 10 minutes.`,
-    // };
-
-    // await transporter.sendMail(mailOptions);
-
-    // Return the response with user data
+  
     return res
       .status(201)
       .json(new ApiResponse(201, userCreated, "User Registered successfully."));
