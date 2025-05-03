@@ -10,8 +10,7 @@ import {
     // orderHistory,
     refreshToken,
     registerUser,
-    updateAccountDetails,
-    updateUserAvtar,
+    updateProfile,
     // userProfile,
     
 } from "../controllers/user.controller.js";
@@ -34,10 +33,9 @@ router.route("/current-user").get(verifyJwt, getCurrentUser);
 
 // router.route("/order-history").get(verifyJwt, orderHistory);
 
-router.route("/update-account-details").put(verifyJwt, updateAccountDetails);
-
-router.route("/update-user-avatar").put(verifyJwt, upload.single("avatar"), updateUserAvtar);
-
+// routes/user.routes.js
+router.route("/update")
+  .patch(verifyJwt, upload.single("avatar"), updateProfile);
 router.route("/change-password").put(verifyJwt, currentPasswordChange);
 
 export default router;

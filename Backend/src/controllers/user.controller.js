@@ -244,80 +244,67 @@ const currentPasswordChange = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
+// In your user controller
 const getCurrentUser = asyncHandler(async (req, res) => {
-  return res
-    .status(200)
-    .json(new ApiResponse(200, req.user, "User fetched successfully"));
+  try {
+    // The verifyJwt middleware already attached the user to req.user
+    const user = req.user;
+    
+    return res.status(200).json(
+      new ApiResponse(200, { user }, "Current user fetched successfully")
+    );
+  } catch (error) {
+    throw new ApiError(401, "Not authenticated");
+  }
 });
 
-const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { fullname, username, email, phoneNumber, address, city, postalCode } =
-    req.body;
+// controllers/user.controller.js
+const updateProfile = asyncHandler(async (req, res) => {
+  const updates = {};
+  const updateFields = [
+    'fullname', 'username', 'email', 
+    'phoneNumber', 'address', 'city', 'postalCode'
+  ];
 
-  if (
-    [fullname, username, email, phoneNumber, address, city].some(
-      (field) => field?.trim() === ""
-    )
-  ) {
-    throw new ApiError(400, "All fields are required");
+
+  // Handle regular fields
+  updateFields.forEach(field => {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  });
+
+  // Handle avatar if uploaded
+  if (req.file) {
+    const avatarLocalPath = req.file.path;
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    if (!avatar) {
+      throw new ApiError(400, "Avatar upload failed");
+    }
+    updates.avatar = avatar.url;
+    
+    // Delete old avatar if exists
+    if (req.user?.avatar) {
+      const public_id = req.user.avatar.split("/").pop().split(".")[0];
+      await deleteFromCloudinary(public_id);
+    }
   }
+  console.table("Update request received:", {
+    body: req.body,
+    file: req.file,
+    user: req.user
+  });
 
   const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: {
-        fullname,
-        username,
-        email,
-        phoneNumber,
-        address,
-        city,
-        postalCode: postalCode || "",
-      },
-    },
-    {
-      new: true,
-    }
+    req.user._id,
+    { $set: updates },
+    { new: true }
   ).select("-password -refreshToken");
 
-  return res.status(200).json(new ApiResponse(200, user, "Detaile Upadted"));
-});
-
-const updateUserAvtar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
-
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar is missing on server");
-  }
-
-  const oldAvatar = req.user?.avatar;
-
-  if (oldAvatar) {
-    const public_id = oldAvatar.split("/").pop().split(".")[0];
-    await deleteFromCloudinary(public_id);
-  }
-
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-
-  if (!avatar) {
-    throw new ApiError(402, "File not uploaded on cloudinary");
-  }
-
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: {
-        avatar: avatar.url,
-      },
-    },
-    { new: true }
+  return res.status(200).json(
+    new ApiResponse(200, user, "Profile updated successfully")
   );
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, user, "Avatar Uploaded suceesfully"));
 });
-
 
 export {
   registerUser,
@@ -326,7 +313,6 @@ export {
   refreshToken,
   currentPasswordChange,
   getCurrentUser,
-  updateAccountDetails,
-  updateUserAvtar,
+  updateProfile
  
 };

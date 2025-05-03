@@ -7,6 +7,7 @@ import ProductPage from './pages/ProductPage.jsx'
 import SmartCooking from './pages/SmartCooking';
 import Stores from './pages/Stores';
 import Media from './pages/Media';
+import UpdateProfile from './pages/UpdateProfile';
 
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 
@@ -19,6 +20,7 @@ const router = createBrowserRouter(
       <Route path="smart-cooking" element={<SmartCooking />} />
       <Route path="stores" element={<Stores />} />
       <Route path="media" element={<Media />} />
+      <Route path="update-profile" element={<UpdateProfile />} />
       {/* Add more routes here like smart-cooking, stores, media, etc. */}
     </Route>
   )

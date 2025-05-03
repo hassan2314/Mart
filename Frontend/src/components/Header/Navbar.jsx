@@ -30,10 +30,29 @@ const Navbar = () => {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
+    const verifyAuth = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/users/current-user`,
+          { withCredentials: true }
+        );
+
+        if (response.data?.data?.user) {
+          setCurrentUser(response.data.data.user);
+          localStorage.setItem("user", JSON.stringify(response.data.data.user));
+        }
+      } catch (error) {
+        console.error("Auth verification failed:", error);
+        // Clear any invalid auth state
+        localStorage.removeItem("user");
+        localStorage.removeItem("userId");
+        sessionStorage.removeItem("accessToken");
+        setCurrentUser(null);
+      }
+    };
+
+    // Always verify auth on mount
+    verifyAuth();
   }, []);
 
   useEffect(() => {
@@ -46,6 +65,35 @@ const Navbar = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+  }, []);
+
+  // Add this function inside your Navbar component
+  const verifyAuth = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/users/current-user`,
+        { withCredentials: true }
+      );
+
+      if (response.data?.user) {
+        setCurrentUser(response.data.user);
+        localStorage.setItem("userId", response.data.user._id);
+      }
+    } catch (error) {
+      console.error("Auth verification failed:", error);
+      // Clear any invalid auth state
+      localStorage.removeItem("userId");
+      sessionStorage.removeItem("accessToken");
+      setCurrentUser(null);
+    }
+  };
+
+  // Update your useEffect to call verifyAuth on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem("userId");
+    if (storedUser) {
+      verifyAuth();
+    }
   }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -74,16 +122,11 @@ const Navbar = () => {
         loginData,
         { withCredentials: true }
       );
-
-      const { accessToken, user } = res.data.data;
-
-      // Save the userId to localStorage (or use cookies for sensitive info)
-      localStorage.setItem("userId", user._id); // Store minimal user data (userId only)
-
-      // Optionally store the accessToken in sessionStorage or cookies (safer than localStorage)
-      sessionStorage.setItem("accessToken", accessToken);
-
-      setCurrentUser(user); // Update the UI state with minimal user data
+  
+      const { user } = res.data.data;
+      setCurrentUser(user);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("userId", user._id);
       setIsModalOpen(false);
       setLoginData({ username: "", password: "" });
     } catch (err) {
@@ -132,20 +175,15 @@ const Navbar = () => {
       await axios.post(`${import.meta.env.VITE_API_URL}/users/logout`, null, {
         withCredentials: true,
       });
-
-      // Clear session data
+  
+      // Clear all auth-related storage
+      localStorage.removeItem("user");
       localStorage.removeItem("userId");
-      sessionStorage.removeItem("accessToken"); // Clear access token from sessionStorage
+      sessionStorage.removeItem("accessToken");
       setCurrentUser(null);
       setIsDropdownOpen(false);
-
-      // Clear cookies if they were used
-      document.cookie =
-        "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie =
-        "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-      navigate("/"); // Navigate to home or login page after logout
+  
+      navigate("/");
     } catch (err) {
       console.error("Logout Error:", err);
       alert("Error logging out. Try again.");
